@@ -1,0 +1,6 @@
+*.csv
+info.txt
+*.wav
+*.log
+.idea
+__pycache__

@@ -1,0 +1,6 @@
+- need ffmpeg support
+- need openSmile support — version 2.1.0
+- 音乐分类输入的文件名中不能有空格 — 待修改
+- 音乐分类部分目前使用的是中期检查以前我们训练出来的模型，需要qjy修改为最新的模型（效果最好的），特征提取也是用当时我用的conf文件提取的，可以自行修改
+- 音乐生成部分 — 待完善
+- to run: python gui.py
