@@ -6,3 +6,4 @@ info.txt
 __pycache__
 tmp.abc
 .DS_Store
+*.mid
