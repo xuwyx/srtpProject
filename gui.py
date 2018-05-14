@@ -7,7 +7,7 @@ from PyQt5 import QtWidgets
 from Demo import Classification
 from PyQt5.QtGui import *
 from sample import Generation
-import pyglet
+# import pyglet
 
 inputFile = ""
 openSmilePath = "/Users/Jocey/Downloads/openSMILE-2.1.0/"
@@ -59,7 +59,9 @@ class MyWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         if source == self.m.btn:
             if event.type() == QEvent.MouseMove:
                 pos = event.pos()
-                self.m.vtxt.setText('x:%d, y:%d' % (pos.x(),  pos.y()))
+                # self.m.vtxt.setText('x:%d, y:%d' % (pos.x(),  pos.y()))
+                self.m.vtxt.setText('2.2')
+                self.m.atxt.setText('4.3')
         return QMainWindow.eventFilter(self,  source,  event)
 
 
