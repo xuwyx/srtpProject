@@ -9,25 +9,33 @@ class Classification:
         self.batch_size = 64
         self.mean = pkl.load(open("mean", "rb"))
         self.std = pkl.load(open("std", "rb"))
-        self.model_A = models.load_model("model_adagrad_A_103")
-        self.model_V = models.load_model("model_adagrad_V_102")
+        self.model_A = models.load_model("model_a")
+        self.model_V = models.load_model("model_v")
         self.valance = 0
         self.arousal = 0
 
     def run(self):
         my_matrix = np.loadtxt(open(self.data_x_file, "rb"), delimiter=';', skiprows=1)
         my_matrix = np.delete(my_matrix, 0, 1)
+        print(my_matrix.shape)
         data_x = []
-        if len(my_matrix) < 218 + 75:
-            print("The song is too short, we need a song with at least 60 seconds.")
+        if (len(my_matrix) < 732):
+            print("The song is too short, we need a song with at least 120 seconds.")
             return 0
         for i in range(self.batch_size):
-            data_x.append(my_matrix[76:292, :])
-        data_x -= self.mean
-        data_x /= self.std
+            if i < 40:
+                data_x.append(my_matrix[76 + 16 * i:92 + 16 * i, :])
+            else:
+                data_x.append(my_matrix[716:732, :])
+        # data_x.append(my_matrix[76:292, :])
+        # data_x -= self.mean
+        # data_x /= self.std
+        data_x = np.array(data_x)
+        print(data_x.shape)
+        data_x = data_x[0:64][:, :]
+        classes_V = self.model_V.predict(data_x, batch_size=self.batch_size)
+        classes_A = self.model_A.predict(data_x, batch_size=self.batch_size)
+        self.valance = classes_V[0] * 100 / 3
+        self.arousal = classes_A[0] * 10
 
-        classes_V = self.model_V.predict(data_x[0:64, :, :], batch_size=self.batch_size)
-        classes_A = self.model_A.predict(data_x[0:64, :, :], batch_size=self.batch_size)
-        self.valance = (classes_V[0] - 0.5) * 1.2 + 0.5
-        self.arousal = (classes_A[0] - 0.5) * 1.2 + 0.5
         return 1
