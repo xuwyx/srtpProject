@@ -7,9 +7,10 @@ from PyQt5 import QtWidgets
 from Demo import Classification
 from PyQt5.QtGui import *
 from sample import Generation
+import pyglet
 
 inputFile = ""
-openSmilePath = "/Users/xwy/Downloads/openSMILE-2.1.0/"
+openSmilePath = "/Users/Jocey/Downloads/openSMILE-2.1.0/"
 smileExtract = openSmilePath + "inst/bin/SMILExtract"
 configPath = "./IS10_paraling_2.conf"
 
