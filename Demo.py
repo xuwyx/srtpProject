@@ -1,8 +1,7 @@
 import numpy as np
 import pickle as pkl
-import sys
 from keras import models
-import matplotlib.pyplot as plt
+
 
 class Classification:
     def __init__(self, csvName):
@@ -14,11 +13,12 @@ class Classification:
         self.model_V = models.load_model("model_adagrad_V_102")
         self.valance = 0
         self.arousal = 0
+
     def run(self):
         my_matrix = np.loadtxt(open(self.data_x_file, "rb"), delimiter=';', skiprows=1)
         my_matrix = np.delete(my_matrix, 0, 1)
         data_x = []
-        if (len(my_matrix) < 218 + 75):
+        if len(my_matrix) < 218 + 75:
             print("The song is too short, we need a song with at least 60 seconds.")
             return 0
         for i in range(self.batch_size):

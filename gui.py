@@ -24,7 +24,6 @@ class MyWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.save_filename = ""
         self.save_filetype = ""
         self.m = MultiInPutDialog()
-        # self.m.installEventFilter(self)
         self.m.btn.installEventFilter(self)
 
     def click_recognize(self):
@@ -85,18 +84,6 @@ class MultiInPutDialog(QDialog):
         layout.addItem(hlayout)
         layout.addStretch()
         self.setLayout(layout)
-
-
-        # -------------------Close Event Method----------------------
-        # def closeEvent(self, event):
-        #     reply = QtGui.QMessageBox.question(self, 'Close Message',
-        #                                        "Are you sure to quit?", QtGui.QMessageBox.Yes |
-        #                                        QtGui.QMessageBox.No, QtGui.QMessageBox.No)
-        #     if reply == QtGui.QMessageBox.Yes:
-        #         event.accept()
-        #     else:
-        #         event.ignore()
-
 
 class VAButton(QPushButton):
     def __init__(self, parent=None):
