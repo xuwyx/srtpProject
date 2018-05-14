@@ -85,6 +85,7 @@ class MultiInPutDialog(QDialog):
         layout.addStretch()
         self.setLayout(layout)
 
+
 class VAButton(QPushButton):
     def __init__(self, parent=None):
         super(VAButton, self).__init__(parent)
