@@ -10,7 +10,7 @@ class Classification:
         self.mean = pkl.load(open("mean", "rb"))
         self.std = pkl.load(open("std", "rb"))
         self.model_A = models.load_model("model_a")
-        self.model_V = models.load_model("model_v")
+        self.model_V = models.load_model("model_v")  #8 is better
         self.valance = 0
         self.arousal = 0
 
@@ -35,7 +35,7 @@ class Classification:
         data_x = data_x[0:64][:, :]
         classes_V = self.model_V.predict(data_x, batch_size=self.batch_size)
         classes_A = self.model_A.predict(data_x, batch_size=self.batch_size)
-        self.valance = classes_V[0] * 100 / 3
+        self.valance =1 / classes_V[0] * 0.01
         self.arousal = classes_A[0] * 10
 
         return 1
