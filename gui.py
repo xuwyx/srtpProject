@@ -8,6 +8,8 @@ from Demo import Classification
 from PyQt5.QtGui import *
 from sample import Generation
 # import pyglet
+import time, threading
+import pygame
 
 inputFile = ""
 openSmilePath = "/Users/xwy/Downloads/openSMILE-2.1.0/"
@@ -15,11 +17,21 @@ smileExtract = openSmilePath + "inst/bin/SMILExtract"
 configPath = "./IS10_paraling_2.conf"
 
 
+def playMusic():
+    print('thread %s is running...' % threading.current_thread().name)
+
+    pygame.mixer.init()
+    track = pygame.mixer.music.load(song)
+    pygame.mixer.music.play()
+    pygame.mixer.music.fadeout(90000)
+
+
 class MyWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self):
         super(MyWindow, self).__init__()
         self.setupUi(self)
         self.temp_count = 0
+        self.timeout = 10
         self.open_filename = ""
         self.open_filetype = ""
         self.save_filename = ""
@@ -31,6 +43,11 @@ class MyWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.open_filename, self.open_filetype = QFileDialog.getOpenFileName(self, "Open a MP3 file", "/",
                                                                              "MP3 (*.mp3)")
         print(self.open_filename)
+        global song
+        song = self.open_filename
+        print('thread %s is running...' % threading.current_thread().name)
+        t = threading.Thread(target=playMusic)
+        t.start()
         if self.open_filename:
             if os.path.exists("out.csv"):
                 os.remove("out.csv")
@@ -39,11 +56,15 @@ class MyWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             ret = os.system("ffmpeg -i " + self.open_filename + " -vn out.wav &> info.txt")
             os.system(smileExtract + " -C " + configPath + " -I out.wav -O out.csv &> info.txt")
             c = Classification("out.csv")
+
             res = c.run()
             if (res == 1):
                 self.lcdNumber_2.display(c.valance * 10)
                 self.lcdNumber.display(c.arousal * 10)
+            t.join()
+            print('thread %s ended.' % threading.current_thread().name)
         pass
+
 
     def click_generate(self):
         self.save_filename, self.save_filetype = QFileDialog.getSaveFileName(self, "Save a MIDI file", "/",
@@ -166,9 +187,13 @@ class VAButton(QPushButton):
         icon_position.setHeight(height)
         return icon_position
 
+
+
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     widget = MyWindow()
     widget.show()
     app.installEventFilter(widget)
+
     sys.exit(app.exec_())
