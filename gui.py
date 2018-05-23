@@ -10,7 +10,7 @@ from sample import Generation
 # import pyglet
 
 inputFile = ""
-openSmilePath = "/Users/Jocey/Downloads/openSMILE-2.1.0/"
+openSmilePath = "/Users/xwy/Downloads/openSMILE-2.1.0/"
 smileExtract = openSmilePath + "inst/bin/SMILExtract"
 configPath = "./IS10_paraling_2.conf"
 
@@ -51,7 +51,7 @@ class MyWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         print(self.save_filename)
         self.m.btn.setFileName(self.save_filename)
         self.installEventFilter(self.m)
-        self.m.focusWidget()
+        self.m.setFocus()
         if self.m.exec_():
             print("ok")
 
@@ -59,9 +59,13 @@ class MyWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         if source == self.m.btn:
             if event.type() == QEvent.MouseMove:
                 pos = event.pos()
-                # self.m.vtxt.setText('x:%d, y:%d' % (pos.x(),  pos.y()))
-                self.m.vtxt.setText('2.2')
-                self.m.atxt.setText('4.3')
+                self.m.vtxt.setText('%d' % pos.x())
+                self.m.atxt.setText('%d' % pos.y())
+                # self.setCursor(Qt.UpArrowCursor)
+        #     else:
+        #         self.setCursor(Qt.ArrowCursor)
+        # else:
+        #     self.setCursor(Qt.ArrowCursor)
         return QMainWindow.eventFilter(self,  source,  event)
 
 
@@ -103,6 +107,7 @@ class VAButton(QPushButton):
         self.setGeometry(rect)
         self.setFixedSize(QSize(300, 300))
         self.setIconSize(QSize(300, 300))
+        self.g = Generation(self.file_name, 1, 1)
 
     def setFileName(self, file_name):
         self.file_name = file_name
@@ -138,10 +143,10 @@ class VAButton(QPushButton):
     def mousePressEvent(self, event):
         self.pressed = True
         self.repaint()
-        g = Generation(self.file_name, 1, 1)
-        g.calculate()
-        g.sample()
-        g.deal_abc()
+        self.g.setFileName(self.file_name)
+        self.g.calculate()
+        self.g.sample()
+        self.g.deal_abc()
         QPushButton.mousePressEvent(self, event)
 
     def mouseReleaseEvent(self, event):

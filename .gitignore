@@ -7,3 +7,8 @@ __pycache__
 tmp.abc
 .DS_Store
 *.mid
+model_a
+model_v
+*.docx
+*.pdf
+

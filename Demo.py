@@ -19,7 +19,7 @@ class Classification:
         my_matrix = np.delete(my_matrix, 0, 1)
         print(my_matrix.shape)
         data_x = []
-        if (len(my_matrix) < 732):
+        if len(my_matrix) < 732:
             print("The song is too short, we need a song with at least 120 seconds.")
             return 0
         for i in range(self.batch_size):
