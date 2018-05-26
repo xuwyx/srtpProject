@@ -143,115 +143,115 @@ def tone_to_freq(tone):
     return math.pow(2, ((float(tone) - 69.0) / 12.0)) * 440.0
 
 
-def get_midi_pattern(song_data):
-    """
-    get_midi_pattern takes a song in internal representation
-    (a tensor of dimensions [songlength, self.num_song_features]).
-    the three values are length, frequency, velocity.
-    if velocity of a frame is zero, no midi event will be
-    triggered at that frame.
-
-    returns the midi_pattern.
-
-    Can be used with filename == None. Then nothing is saved, but only returned.
-    """
-    print('song_data[0:10]: {}'.format(song_data[0:10]))
-
-    #
-    # Interpreting the midi pattern.
-    # A pattern has a list of tracks
-    # (midi.Track()).
-    # Each track is a list of events:
-    #   * midi.events.SetTempoEvent: tick, data([int, int, int])
-    #     (The three ints are really three bytes representing one integer.)
-    #   * midi.events.TimeSignatureEvent: tick, data([int, int, int, int])
-    #     (ignored)
-    #   * midi.events.KeySignatureEvent: tick, data([int, int])
-    #     (ignored)
-    #   * midi.events.MarkerEvent: tick, text, data
-    #   * midi.events.PortEvent: tick(int), data
-    #   * midi.events.TrackNameEvent: tick(int), text(string), data([ints])
-    #   * midi.events.ProgramChangeEvent: tick, channel, data
-    #   * midi.events.ControlChangeEvent: tick, channel, data
-    #   * midi.events.PitchWheelEvent: tick, data(two bytes, 14 bits)
-    #
-    #   * midi.events.NoteOnEvent:  tick(int), channel(int), data([int,int]))
-    #     - data[0] is the note (0-127)
-    #     - data[1] is the velocity.
-    #     - if velocity is 0, this is equivalent of a midi.NoteOffEvent
-    #   * midi.events.NoteOffEvent: tick(int), channel(int), data([int,int]))
-    #
-    #   * midi.events.EndOfTrackEvent: tick(int), data()
-    #
-    # Ticks are relative.
-    #
-    # Tempo are in microseconds/quarter note.
-    #
-    # This interpretation was done after reading
-    # http://electronicmusic.wikia.com/wiki/Velocity
-    # http://faydoc.tripod.com/formats/mid.htm
-    # http://www.lastrayofhope.co.uk/2009/12/23/midi-delta-time-ticks-to-seconds/2/
-    # and looking at some files. It will hopefully be enough
-    # for the use in this project.
-    #
-    # This approach means that we do not currently support
-    #   tempo change events.
-    #
-
-    # Tempo:
-    # Multiply with output_ticks_pr_input_tick for output ticks.
-    midi_pattern = midi.Pattern([], resolution=int(output_ticks_per_quarter_note))
-    cur_track = midi.Track([])
-    cur_track.append(midi.events.SetTempoEvent(tick=0, bpm=45))
-    future_events = {}
-    last_event_tick = 0
-
-    ticks_to_this_tone = 0.0
-    song_events_absolute_ticks = []
-    abs_tick_note_beginning = 0.0
-    for frame in song_data:
-        abs_tick_note_beginning += frame[TICKS_FROM_PREV_START]
-        for subframe in range(tones_per_cell):
-            offset = subframe * NUM_FEATURES_PER_TONE
-            tick_len = int(round(frame[offset + LENGTH]))
-            freq = frame[offset + FREQ]
-            velocity = min(int(round(frame[offset + VELOCITY])), 127)
-            # print('tick_len: {}, freq: {}, velocity: {}, ticks_from_prev_start: {}'.format(tick_len, freq, velocity, frame[TICKS_FROM_PREV_START]))
-            d = freq_to_tone(freq)
-            # print('d: {}'.format(d))
-            if d is not None and velocity > 0 and tick_len > 0:
-                # range-check with preserved tone, changed one octave:
-                tone = d['tone']
-                while tone < 0:   tone += 12
-                while tone > 127: tone -= 12
-                pitch_wheel = cents_to_pitchwheel_units(d['cents'])
-                # print('tick_len: {}, freq: {}, tone: {}, pitch_wheel: {}, velocity: {}'.format(tick_len, freq, tone, pitch_wheel, velocity))
-                # if pitch_wheel != 0:
-                # midi.events.PitchWheelEvent(tick=int(ticks_to_this_tone),
-                #                                            pitch=pitch_wheel)
-                song_events_absolute_ticks.append((abs_tick_note_beginning,
-                                                   midi.events.NoteOnEvent(
-                                                       tick=0,
-                                                       velocity=velocity,
-                                                       pitch=tone)))
-                song_events_absolute_ticks.append((abs_tick_note_beginning + tick_len,
-                                                   midi.events.NoteOffEvent(
-                                                       tick=0,
-                                                       velocity=0,
-                                                       pitch=tone)))
-    song_events_absolute_ticks.sort(key=lambda e: e[0])
-    abs_tick_note_beginning = 0.0
-    for abs_tick, event in song_events_absolute_ticks:
-        rel_tick = abs_tick - abs_tick_note_beginning
-        event.tick = int(round(rel_tick))
-        cur_track.append(event)
-        abs_tick_note_beginning = abs_tick
-
-    cur_track.append(midi.EndOfTrackEvent(tick=int(output_ticks_per_quarter_note)))
-    midi_pattern.append(cur_track)
-    # print 'Printing midi track.'
-    # print midi_pattern
-    return midi_pattern
+# def get_midi_pattern(song_data, b):
+#     """
+#     get_midi_pattern takes a song in internal representation
+#     (a tensor of dimensions [songlength, self.num_song_features]).
+#     the three values are length, frequency, velocity.
+#     if velocity of a frame is zero, no midi event will be
+#     triggered at that frame.
+#
+#     returns the midi_pattern.
+#
+#     Can be used with filename == None. Then nothing is saved, but only returned.
+#     """
+#     print('song_data[0:10]: {}'.format(song_data[0:10]))
+#
+#     #
+#     # Interpreting the midi pattern.
+#     # A pattern has a list of tracks
+#     # (midi.Track()).
+#     # Each track is a list of events:
+#     #   * midi.events.SetTempoEvent: tick, data([int, int, int])
+#     #     (The three ints are really three bytes representing one integer.)
+#     #   * midi.events.TimeSignatureEvent: tick, data([int, int, int, int])
+#     #     (ignored)
+#     #   * midi.events.KeySignatureEvent: tick, data([int, int])
+#     #     (ignored)
+#     #   * midi.events.MarkerEvent: tick, text, data
+#     #   * midi.events.PortEvent: tick(int), data
+#     #   * midi.events.TrackNameEvent: tick(int), text(string), data([ints])
+#     #   * midi.events.ProgramChangeEvent: tick, channel, data
+#     #   * midi.events.ControlChangeEvent: tick, channel, data
+#     #   * midi.events.PitchWheelEvent: tick, data(two bytes, 14 bits)
+#     #
+#     #   * midi.events.NoteOnEvent:  tick(int), channel(int), data([int,int]))
+#     #     - data[0] is the note (0-127)
+#     #     - data[1] is the velocity.
+#     #     - if velocity is 0, this is equivalent of a midi.NoteOffEvent
+#     #   * midi.events.NoteOffEvent: tick(int), channel(int), data([int,int]))
+#     #
+#     #   * midi.events.EndOfTrackEvent: tick(int), data()
+#     #
+#     # Ticks are relative.
+#     #
+#     # Tempo are in microseconds/quarter note.
+#     #
+#     # This interpretation was done after reading
+#     # http://electronicmusic.wikia.com/wiki/Velocity
+#     # http://faydoc.tripod.com/formats/mid.htm
+#     # http://www.lastrayofhope.co.uk/2009/12/23/midi-delta-time-ticks-to-seconds/2/
+#     # and looking at some files. It will hopefully be enough
+#     # for the use in this project.
+#     #
+#     # This approach means that we do not currently support
+#     #   tempo change events.
+#     #
+#
+#     # Tempo:
+#     # Multiply with output_ticks_pr_input_tick for output ticks.
+#     midi_pattern = midi.Pattern([], resolution=int(output_ticks_per_quarter_note))
+#     cur_track = midi.Track([])
+#     cur_track.append(midi.events.SetTempoEvent(tick=0, bpm=b))
+#     future_events = {}
+#     last_event_tick = 0
+#
+#     ticks_to_this_tone = 0.0
+#     song_events_absolute_ticks = []
+#     abs_tick_note_beginning = 0.0
+#     for frame in song_data:
+#         abs_tick_note_beginning += frame[TICKS_FROM_PREV_START]
+#         for subframe in range(tones_per_cell):
+#             offset = subframe * NUM_FEATURES_PER_TONE
+#             tick_len = int(round(frame[offset + LENGTH]))
+#             freq = frame[offset + FREQ]
+#             velocity = min(int(round(frame[offset + VELOCITY])), 127)
+#             # print('tick_len: {}, freq: {}, velocity: {}, ticks_from_prev_start: {}'.format(tick_len, freq, velocity, frame[TICKS_FROM_PREV_START]))
+#             d = freq_to_tone(freq)
+#             # print('d: {}'.format(d))
+#             if d is not None and velocity > 0 and tick_len > 0:
+#                 # range-check with preserved tone, changed one octave:
+#                 tone = d['tone']
+#                 while tone < 0:   tone += 12
+#                 while tone > 127: tone -= 12
+#                 pitch_wheel = cents_to_pitchwheel_units(d['cents'])
+#                 # print('tick_len: {}, freq: {}, tone: {}, pitch_wheel: {}, velocity: {}'.format(tick_len, freq, tone, pitch_wheel, velocity))
+#                 # if pitch_wheel != 0:
+#                 # midi.events.PitchWheelEvent(tick=int(ticks_to_this_tone),
+#                 #                                            pitch=pitch_wheel)
+#                 song_events_absolute_ticks.append((abs_tick_note_beginning,
+#                                                    midi.events.NoteOnEvent(
+#                                                        tick=0,
+#                                                        velocity=velocity,
+#                                                        pitch=tone)))
+#                 song_events_absolute_ticks.append((abs_tick_note_beginning + tick_len,
+#                                                    midi.events.NoteOffEvent(
+#                                                        tick=0,
+#                                                        velocity=0,
+#                                                        pitch=tone)))
+#     song_events_absolute_ticks.sort(key=lambda e: e[0])
+#     abs_tick_note_beginning = 0.0
+#     for abs_tick, event in song_events_absolute_ticks:
+#         rel_tick = abs_tick - abs_tick_note_beginning
+#         event.tick = int(round(rel_tick))
+#         cur_track.append(event)
+#         abs_tick_note_beginning = abs_tick
+#
+#     cur_track.append(midi.EndOfTrackEvent(tick=int(output_ticks_per_quarter_note)))
+#     midi_pattern.append(cur_track)
+#     # print 'Printing midi track.'
+#     # print midi_pattern
+#     return midi_pattern
 
 
 def cents_to_pitchwheel_units(cents):
@@ -301,7 +301,7 @@ def freq_to_tone(freq):
 # pkl.dump(song_data, open("/Users/xwy/Desktop/Study/srtp/midi_out","wb"))
 
 
-def get_midi_pattern(song_data):
+def get_midi_pattern(song_data, b):
     """
     get_midi_pattern takes a song in internal representation
     (a tensor of dimensions [songlength, self.num_song_features]).
@@ -360,7 +360,7 @@ def get_midi_pattern(song_data):
     # Multiply with output_ticks_pr_input_tick for output ticks.
     midi_pattern = midi.Pattern([], resolution=int(output_ticks_per_quarter_note))
     cur_track = midi.Track([])
-    cur_track.append(midi.events.SetTempoEvent(tick=0, bpm=45))
+    cur_track.append(midi.events.SetTempoEvent(tick=0, bpm=b))
     future_events = {}
     last_event_tick = 0
 
@@ -414,10 +414,16 @@ def get_midi_pattern(song_data):
 
 def save_midi_pattern(filename, midi_pattern):
     if filename is not None:
-        midi.write_midifile(filename, midi_pattern)
+        try:
+            midi.write_midifile(filename, midi_pattern)
+        except PermissionError:
+            return False
+        else:
+            return True
+    return False
 
 
-def save_data(filename, song_data):
+def save_data(filename, song_data, b):
     """
     save_data takes a filename and a song in internal representation
     (a tensor of dimensions [songlength, 3]).
@@ -429,6 +435,6 @@ def save_data(filename, song_data):
 
     Can be used with filename == None. Then nothing is saved, but only returned.
     """
-    midi_pattern = get_midi_pattern(song_data)
-    save_midi_pattern(filename, midi_pattern)
-    return midi_pattern
+    midi_pattern = get_midi_pattern(song_data, b)
+    res = save_midi_pattern(filename, midi_pattern)
+    return res

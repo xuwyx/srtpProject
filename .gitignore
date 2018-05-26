@@ -11,4 +11,7 @@ model_a
 model_v
 *.docx
 *.pdf
-
+classification/
+model_old/
+model_0/
+Lstm*

@@ -1,5 +1,6 @@
 from __future__ import print_function
 import tensorflow as tf
+import pickle as pkl
 
 import os
 from six.moves import cPickle
@@ -8,16 +9,29 @@ import random
 
 from model import Model
 
-happy = ['X:0001@%8%7@M:C|@L:1/8@Q:1/2=112@K:G@', 'X:0002@%6%6@M:2/4@L:1/16@Q:1/4=89@K:G@']
+happy = pkl.load(open('generation/happy', "rb"))
+happy_bpm = pkl.load(open('generation/happy_bpm', "rb"))
+sad = pkl.load(open('generation/sad', "rb"))
+sad_bpm = pkl.load(open('generation/sad_bpm', "rb"))
+calm = pkl.load(open('generation/calm', "rb"))
+calm_bpm = pkl.load(open('generation/calm_bpm', "rb"))
+angry = pkl.load(open('generation/angry', "rb"))
+angry_bpm = pkl.load(open('generation/angry_bpm', "rb"))
+
 
 class Generation:
     def __init__(self, file_name, v, a):
-        self.save_dir = "./model"
         self.file_name = file_name
         self.valence = v
         self.arousal = a
+        if v < 5:
+            self.save_dir = "./model_sad_angry"
+        elif v > 5 and a > 5:
+            self.save_dir = "./model_happy"
+        else:
+            self.save_dir = "./model"
         self.n = 500
-        self.prime = self.calculate()
+        self.prime, self.bpm = self.calculate(v, a)
         self.raw = ""
         with open(os.path.join(self.save_dir, 'config.pkl'), 'rb') as f:
             saved_args = cPickle.load(f)
@@ -25,14 +39,33 @@ class Generation:
             self.chars, self.vocab = cPickle.load(f)
         self.model = Model(saved_args, training=False)
 
-
     def setFileName(self, file_name):
         self.file_name = file_name
 
-
-    def calculate(self):
-        slice = random.sample(happy, 1)
-        return slice[0]
+    def calculate(self, v, a):
+        self.valence = v
+        self.arousal = a
+        if v > 5 and a > 5:
+            list_h = [i for i in range(len(happy))]
+            num = random.sample(list_h, 1)[0]
+            s = happy[num]
+            bpm = happy_bpm[num]
+        elif v < 5 and a < 5:
+            list_h = [i for i in range(len(sad))]
+            num = random.sample(list_h, 1)[0]
+            s = sad[num]
+            bpm = sad_bpm[num]
+        elif v < 5 and a > 5:
+            list_h = [i for i in range(len(angry))]
+            num = random.sample(list_h, 1)[0]
+            s = angry[num]
+            bpm = angry_bpm[num]
+        else:
+            list_h = [i for i in range(len(calm))]
+            num = random.sample(list_h, 1)[0]
+            s = calm[num]
+            bpm = calm_bpm[num]
+        return s, bpm
 
     def sample(self):
         with tf.Session() as sess:
